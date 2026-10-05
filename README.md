@@ -2,7 +2,7 @@
 
 An interactive Three.js explorer for multivariate multicycle (MM) quantum error-correcting codes and their bicycle, tricycle, toric, and cubic-code subfamilies.
 
-**Open the app:** https://quantumsavory.github.io/mm-code-explorer/
+**Open the app:** https://doc.quantumsavory.org/mm-code-explorer/
 
 - Edit cyclic ideals and 2–6 binary generating polynomials independently of the lattice dimension.
 - Explore periodic 2D and 3D lattices, or a 4D lattice as consecutive, labeled 3D slices along the fourth axis.
