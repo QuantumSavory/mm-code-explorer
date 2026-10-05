@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#101825" />
+  <meta name="description" content="Explore multivariate multicycle quantum error-correcting codes. Visualize polynomial parity-check supports on periodic 2D, 3D, and 4D lattices with Three.js." />
+  <title>Multicycle · Quantum code explorer</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+</head>
+<body>
+  <canvas id="lattice-canvas" aria-hidden="true"></canvas>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Multicycle home"><svg width="31" height="31" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 8H24V24H7V8ZM7 8L24 24M24 8L7 24" stroke="currentColor" stroke-width="1.4"/><circle cx="7" cy="8" r="3" fill="#80e2c2"/><circle cx="24" cy="8" r="3" fill="#a4baff"/><circle cx="24" cy="24" r="3" fill="#ffbf7c"/><circle cx="7" cy="24" r="3" fill="#e29ee5"/></svg><span>multicycle<span class="brand-sub">QUANTUM CODE EXPLORER</span></span></a>
+    <nav aria-label="Resources"><a href="https://arxiv.org/abs/2601.18879" target="_blank" rel="noreferrer">The construction</a><a href="https://github.com/QuantumSavory/mm-code-explorer" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a><span class="org">QuantumSavory</span></nav>
+  </header>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Code and display settings">
+      <section class="editor-section">
+        <div class="eyebrow">01 / DEFINE THE CODE</div>
+        <h1>From polynomials<br>to parity checks.</h1>
+        <label for="preset">Explore a code</label>
+        <select id="preset"></select>
+        <p id="preset-note" class="help preset-note"></p>
+        <form id="code-form">
+          <label id="dimension-label">Lattice dimension <span class="muted">D</span></label>
+          <div id="dimensions" class="segmented" role="group" aria-labelledby="dimension-label"><button type="button" data-dim="2" aria-pressed="true">2D</button><button type="button" data-dim="3" aria-pressed="false">3D</button><button type="button" data-dim="4" aria-pressed="false">4D</button></div>
+          <label for="ideal">Cyclic ideal <span class="muted">I = ⟨…⟩</span></label>
+          <textarea id="ideal" class="code-input" rows="2" spellcheck="false" autocomplete="off" aria-describedby="ideal-help"></textarea>
+          <p id="ideal-help" class="help">The powers set the periodic lattice size.</p>
+          <label for="polynomials">Generating polynomials <span class="muted">F₁, F₂, …</span></label>
+          <textarea id="polynomials" class="code-input polys" rows="4" spellcheck="false" autocomplete="off" aria-describedby="poly-help"></textarea>
+          <p id="poly-help" class="help">One per line, over 𝔽₂. Use products, parentheses and integer powers. For example: <code>(1+x)(1+y)</code>.</p>
+          <div id="input-error" role="alert" hidden></div>
+          <button class="primary" type="submit">Visualize code</button>
+          <p id="draft-status" class="help" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="editor-section display-section">
+        <div class="eyebrow">02 / ADJUST THE VIEW</div>
+        <div class="range-label"><label for="spacing">Lattice spacing</label><output id="spacing-value">1.0×</output></div><input id="spacing" type="range" min="0.65" max="2.2" step="0.05" value="1" />
+        <div class="range-label"><label for="block-spacing">Qubit block separation</label><output id="block-spacing-value">1.0×</output></div><input id="block-spacing" type="range" min="0.3" max="1.8" step="0.05" value="1" />
+        <div id="slice-spacing-control" hidden><div class="range-label"><label for="slice-spacing">4D slice spacing</label><output id="slice-spacing-value">16 px</output></div><input id="slice-spacing" type="range" min="0" max="80" step="4" value="16" /></div>
+        <div class="checkbox-row"><label><input type="checkbox" id="show-grid" checked /> Lattice guides</label><label><input type="checkbox" id="show-links" checked /> Support links</label></div>
+        <button type="button" class="secondary" id="reset-view">Reset cameras</button>
+        <p class="help">Drag to rotate in 3D. Scroll to zoom. Right-drag to pan. In 2D, drag to pan. Focus a view to use the arrow keys and + / −.</p>
+      </section>
+      <details class="explanation"><summary>How to read the lattice</summary>
+        <p>Every colored point is a physical qubit in the displayed parity check. Its color identifies the polynomial that contributes it. Faint points show the other qubits.</p>
+        <p>At each lattice site, small offsets distinguish qubit blocks. A qubit is specified by both its site and its block. The offsets are only for readability.</p>
+        <p>We display one representative per family at the origin. Translating its support modulo the lattice periods generates that family. Lines indicate support membership, not nearest-neighbor hardware couplings.</p>
+        <p>With t polynomials, q = ⌊t/2⌋. Blocks are q-element subsets B. X families are (q−1)-subsets R: Fⱼ contributes to B = R ∪ {j} at +e. Z families are (q+1)-subsets T: Fⱼ contributes to B = T ∖ {j} at −e. All coordinates are reduced modulo the periods.</p>
+        <p>The negative exponents in Z checks implement the circulant transpose. Identical terms cancel over 𝔽₂, including terms that coincide after wrapping. Family labels use this fixed Koszul convention; block order and X/Z naming can differ between publications.</p>
+        <p>Limits: 2–6 polynomials, 1–32 sites per axis, up to 12 fourth-axis slices, 4,096 lattice sites and 24,576 qubits. Code distances in presets are reported by the cited sources, not computed here.</p>
+      </details>
+      <div class="sidebar-footer">Built on the Koszul construction.<br><a id="source-link" target="_blank" rel="noreferrer">Preset reference</a></div>
+    </aside>
+    <main>
+      <div class="main-heading"><div><div class="eyebrow">THE LATTICE / ONE CHECK PER FAMILY</div><h2 id="view-title">Bivariate bicycle</h2></div><span class="dimension-badge" id="dimension-badge">2D periodic lattice</span></div>
+      <div id="stats" class="stats" aria-live="polite"></div>
+      <div class="gallery-toolbar"><div class="segmented check-filter" role="group" aria-label="Check type"><button data-filter="all" aria-pressed="true">All checks</button><button data-filter="X" aria-pressed="false">X checks</button><button data-filter="Z" aria-pressed="false">Z checks</button></div><span id="representative-count"></span></div>
+      <div class="legend-bar"><div id="polynomial-legend"></div><span class="origin-legend"><span>◇</span> origin</span></div>
+      <div id="webgl-error" role="alert" hidden>WebGL could not start. Enable hardware acceleration or try a browser with WebGL 2 support. The exact check supports remain available in the tables below.</div>
+      <div id="check-gallery" class="check-gallery"></div>
+      <footer class="main-footer"><span>Periodic boundaries · coordinates start at zero · arithmetic over 𝔽₂</span><span>Rendered with Three.js</span></footer>
+    </main>
+  </div>
+  <div id="tooltip" role="tooltip" hidden></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
